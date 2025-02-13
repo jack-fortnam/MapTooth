@@ -1,5 +1,5 @@
 import socket
-from configparser import ConfigParser
+import configparser
 
 # Fetch local IP address
 ip = socket.gethostbyname(socket.gethostname())
@@ -15,8 +15,6 @@ class bcolours:
     ENDC = '\033[0m'
     BOLD = '\033[1m'
     UNDERLINE = '\033[4m'
-
-config = ConfigParser()
 
 # Banner
 print("""
@@ -66,9 +64,11 @@ while True:
 
 # Writing to Config File
 try:
-    with open('config.cfg', 'w') as f:
-        config["settings"] = {'server_ip': ip, 'port': str(port)}
-        config.write(f)
+    config = configparser.ConfigParser()
+    config['settings'] = {'server_ip': ip, 'port': port}
+
+    with open('config.cfg', 'w') as configfile:
+        config.write(configfile)
         print(f"{bcolours.OKGREEN}Config written successfully to 'config.cfg'{bcolours.ENDC}")
 except Exception as e:
     print(f"{bcolours.FAIL}Failed to write config file: {e}{bcolours.ENDC}")
