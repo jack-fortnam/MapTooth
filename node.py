@@ -1,10 +1,14 @@
 import asyncio,bluetooth,pickle,uuid,time
-
+from configparser import ConfigParser
 from websockets.asyncio.client import connect
 
-server_ip = "192.168.1.93"
-uri = f"ws://{server_ip}:8765"
-print(f"{uuid.getnode()} is connecting to the server at {server_ip}")
+config = ConfigParser()
+config.read('config.cfg')
+
+server_ip = config.get('settings','server_ip')
+port = config.get('settings','port')
+uri = f"http://{server_ip}:{port}"
+print(f"{uuid.getnode()} is connecting to the server at {uri}")
 
 async def report_out():
     try:
@@ -17,7 +21,7 @@ async def report_out():
             print(f"Report: {report}")
             await websocket.send(data)
     except:
-        print(f"{server_ip} not responding please check the server and try again")
+        print(f"{uri} not responding please check the server and try again")
 
 if __name__ == "__main__":
     while True:

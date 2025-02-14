@@ -1,11 +1,17 @@
 from flask import Flask, request, jsonify, render_template
 from flask_socketio import SocketIO
+from configparser import ConfigParser
 import pickle
 import socket
 
 # Flask setup
 app = Flask(__name__)
 socketio = SocketIO(app)
+
+config = ConfigParser()
+config.read('config.cfg')
+
+port = config.get('settings','port')
 
 # Constants and storage
 api_key = "VPB535HB"
@@ -47,5 +53,5 @@ def handle_report_in(data):
 
 # Main driver function
 if __name__ == '__main__':
-    print(f"Server online at {IP}:5000 and WebSocket active")
-    socketio.run(app, host='0.0.0.0', port=5000,allow_unsafe_werkzeug=True)
+    print(f"Server online at {IP}:{port} and WebSocket active")
+    socketio.run(app, host='0.0.0.0', port=port,allow_unsafe_werkzeug=True)
