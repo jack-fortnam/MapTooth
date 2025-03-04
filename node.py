@@ -1,21 +1,30 @@
-import asyncio,bluetooth,pickle,uuid,time,requests
-
-from websockets.asyncio.client import connect
+import asyncio
+import json
+import uuid
+import time
+import requests
+from bleak import BleakScanner
 
 server_ip = "127.0.0.1"
-uri = f"http://{server_ip}:80/report_in"
+uri = f"http://{server_ip}:5000/report_in"
 print(f"{uuid.getnode()} is connecting to the server at {uri}")
 
-async def report_out():
-    nearby_devices = bluetooth.discover_devices(lookup_names=True)
-    report = [uuid.getnode()]
-    for addr, name in nearby_devices:
-        report.append([addr,name])
-    data = pickle.dumps(report)
-    print(f"Report: {report}")
-    headers = {"Content-Type": "application/octet-stream"}
-    response = requests.post(uri, data=data, headers=headers)
+async def scan_bluetooth():
+    devices = await BleakScanner.discover()
+    device_list = []
+    for device in devices:
+        device_list.append({"address": device.address, "name": device.name or "Unknown"})
+    return device_list
 
+async def report_out():
+    report = {
+        "device_id": uuid.getnode(),
+        "nearby_devices": await scan_bluetooth()
+    }
+    data = json.dumps(report).encode("utf-8")
+    print(f"Report: {json.dumps(report, indent=2)}")
+    headers = {"Content-Type": "application/json"}
+    response = requests.post(uri, data=data, headers=headers)
     print("Server response:", response.text)
 
 if __name__ == "__main__":

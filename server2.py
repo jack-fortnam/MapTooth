@@ -64,22 +64,29 @@ def get_locations():
 def get_node():
     try:
         id = request.args.get('id')
+        print("Nodes dictionary:", json.dumps(nodes, indent=2))
         return jsonify(nodes[id])
     except:
         return jsonify(nodes)
 
-@app.route('/report_in',methods=['POST'])
+@app.route('/report_in', methods=['POST'])
 def report_in():
     try:
-        report = pickle.loads(requests.data)
-        detected_devices = report[1:]
-        locations[report[0]] = detected_devices
+        report = request.get_json()  # Correctly parse JSON data
+        if not report or "device_id" not in report or "nearby_devices" not in report:
+            return "Invalid data format", 400
+        
+        device_id = report["device_id"]
+        detected_devices = report["nearby_devices"]
+        
+        locations[device_id] = detected_devices  # Store data in locations dictionary
 
-        print(f"Updated locations: {locations}")
-        return "Data received",200
+        print(f"Updated locations: {json.dumps(locations, indent=2)}")
+        return "Data received", 200
     
     except Exception as e:
-        return f"Error: {str(e)}",400
+        return f"Error: {str(e)}", 400
+
     
 #async def get_locations(request):
 #    return web.json_response(locations)

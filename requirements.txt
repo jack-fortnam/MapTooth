@@ -1,8 +1,5 @@
 flask
-pickle
-socket
-pybluez2
+bleak
 uuid
 asyncio
-json
 requests
