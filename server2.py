@@ -1,22 +1,23 @@
 from flask import Flask, request, jsonify, render_template
-from flask_socketio import SocketIO
+import pickle,requests,json
 from configparser import ConfigParser
-import pickle
-import socket
+import asyncio,pickle,socket
 
 # Flask setup
 app = Flask(__name__)
-socketio = SocketIO(app)
-
-config = ConfigParser()
-config.read('config.cfg')
-
-port = config.get('settings','port')
 
 # Constants and storage
 api_key = "VPB535HB"
 locations = {}
+nodes = {}
 IP = socket.gethostbyname(socket.gethostname())
+
+try:
+    with open('nodes.json','r') as nodeo:
+        nodes = json.load(nodeo)
+except:
+    with open('nodes.json','w') as nodeo:
+        pass
 
 # Routes for HTML templates
 @app.route('/', methods=['GET'])
@@ -33,25 +34,44 @@ def submitted():
     nodeId = data['nodeID']
     nodeName = data['nodeName']
     what3 = data['w3w']
-    with open('locations.txt', 'a') as f:
-        f.write(f"\n{nodeId},{nodeName},{what3}")
+    nodes[nodeId] = [nodeName,what3]
+    with open('nodes.json', 'w') as nodeo:
+        json.dump(nodes,nodeo)
     return render_template('node.html', submitted=f"Node Submitted :D {nodeId} {nodeName} {what3}")
 
-# REST API for device locations
-@app.route('/locations', methods=['GET'])
+@app.route('/get-locations', methods=['GET'])
 def get_locations():
-    return jsonify(locations)
+    try:
+        id = request.args.get('id')
+        return jsonify(locations[id])
+    except:
+        return jsonify(locations)
 
-# WebSocket handling
-@socketio.on('report_in')
-def handle_report_in(data):
-    report = pickle.loads(data)
-    device_id = f"{report[0]}"
-    detected_devices = report[1:]
-    locations[device_id] = detected_devices
-    print(f"Updated locations: {locations}")
+@app.route('/get-node', methods=['GET'])
+def get_node():
+    try:
+        id = request.args.get('id')
+        return jsonify(nodes[id])
+    except:
+        return jsonify(nodes)
+
+@app.route('/report_in',methods=['POST'])
+def report_in():
+    try:
+        report = pickle.loads(requests.data)
+        device_id = f"{report[0]}"
+        detected_devices = report[1:]
+        locations[device_id] = detected_devices
+
+        print(f"Updated locations: {locations}")
+        return "Data received",200
+    
+    except Exception as e:
+        return f"Error: {str(e)}",400
+    
+#async def get_locations(request):
+#    return web.json_response(locations)
 
 # Main driver function
 if __name__ == '__main__':
-    print(f"Server online at {IP}:{port} and WebSocket active")
-    socketio.run(app, host='0.0.0.0', port=port,allow_unsafe_werkzeug=True)
+    app.run(host='0.0.0.0', port=5000)
