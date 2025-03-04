@@ -56,20 +56,9 @@ def submitted():
 def get_locations():
     try:
         id = int(request.args.get('id'))
-        print(id)
         return jsonify(locations[id])
     except:
         return jsonify(locations)
-
-"""@app.route('/get-node', methods=['GET'])
-def get_node():
-    try:
-        id = request.args.get('id')
-        print(id)
-        print("Nodes dictionary:", json.dumps(nodes, indent=2))
-        return jsonify(nodes[id])
-    except:
-        return jsonify(nodes)"""
 
 @app.route('/report_in', methods=['POST'])
 def report_in():
