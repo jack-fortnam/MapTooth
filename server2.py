@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, jsonify, render_template,redirect,make_response
 import pickle,requests,json
 from configparser import ConfigParser
 import asyncio,pickle,socket
@@ -11,6 +11,7 @@ api_key = "VPB535HB"
 locations = {}
 nodes = {}
 IP = socket.gethostbyname(socket.gethostname())
+config = ConfigParser()
 
 try:
     with open('nodes.json','r') as nodeo:
@@ -24,7 +25,19 @@ except:
 def index():
     return render_template('index.html')
 
-@app.route('/node', methods=['GET'])
+@app.route('/admin/login')
+def login():
+    return render_template('login.html')
+
+@app.route('/logg' , methods=['POST'])
+def logg():
+    data = request.form
+    userID = data['userID']
+    password = data['password']
+    users = config['USERS']['root']
+    return users
+
+@app.route('/admin/node', methods=['GET'])
 def node():
     return render_template('node.html')
 
@@ -59,9 +72,8 @@ def get_node():
 def report_in():
     try:
         report = pickle.loads(requests.data)
-        device_id = f"{report[0]}"
         detected_devices = report[1:]
-        locations[device_id] = detected_devices
+        locations[report[0]] = detected_devices
 
         print(f"Updated locations: {locations}")
         return "Data received",200
