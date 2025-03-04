@@ -1,4 +1,4 @@
-import socket
+import hashlib,socket
 from configparser import ConfigParser
 ip = socket.gethostbyname(socket.gethostname())
 port = 6785
@@ -47,9 +47,17 @@ while True:
         break
     else:
         print(f"{bcolours.FAIL}Invalid choice! Please choose again{bcolours.ENDC}")
-        
+
+root_user = input("What is the root username?\n>>> ")
+root_pass = input("What is the root password?\n>>> ")
+
+m = hashlib.sha256()
+m.update(root_pass.encode())  # Fix: Correctly encode the password
+root_pass = m.hexdigest()
+
 with open('config.cfg','w') as f:
     config['CORE'] = {'server_ip':ip,'port':port}
+    config['USERS'] = {"root":{"user":root_user,"password":root_pass}}
     print("Writing to file")
     config.write(f)
         

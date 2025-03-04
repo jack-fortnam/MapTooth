@@ -1,5 +1,5 @@
 from flask import Flask, request, jsonify, render_template,redirect,make_response
-import pickle,requests,json
+import pickle,requests,json,hashlib
 from configparser import ConfigParser
 import asyncio,pickle,socket
 
@@ -12,6 +12,7 @@ locations = {}
 nodes = {}
 IP = socket.gethostbyname(socket.gethostname())
 config = ConfigParser()
+config.read("config.cfg")
 
 try:
     with open('nodes.json','r') as nodeo:
@@ -20,22 +21,44 @@ except:
     with open('nodes.json','w') as nodeo:
         pass
 
+def login_input_check(username, password):
+    correct_user = config.get("USERS", "root_user", fallback=None)
+    correct_pass = config.get("USERS", "root_pass", fallback=None)
+    
+    if correct_user == username and correct_pass == password:
+        return True
+    return False
+
+
 # Routes for HTML templates
 @app.route('/', methods=['GET'])
 def index():
     return render_template('index.html')
 
-@app.route('/admin/login')
+@app.route('/login')
 def login():
     return render_template('login.html')
+
+@app.route('/admin')
+def admin():
+    return "Admin"
 
 @app.route('/logg' , methods=['POST'])
 def logg():
     data = request.form
     userID = data['userID']
     password = data['password']
-    users = config['USERS']['root']
-    return users
+    m = hashlib.sha256()
+    m.update(password.encode())
+    password = m.hexdigest()
+    print(password)
+    if login_input_check(userID,password):
+        resp = redirect("/admin")
+        resp.set_cookie('user',userID)
+        resp.set_cookie('pass',password)
+        return resp
+    return "Invalid credentials", 401
+
 
 @app.route('/admin/node', methods=['GET'])
 def node():
