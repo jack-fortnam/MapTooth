@@ -1,7 +1,7 @@
 from flask import Flask, request, jsonify, render_template,redirect,make_response
 import pickle,requests,json,hashlib
 from configparser import ConfigParser
-import asyncio,pickle,socket
+import pickle,socket,ast,utils
 
 # Flask setup
 app = Flask(__name__)
@@ -22,9 +22,20 @@ except:
         pass
 
 def login_input_check(username, password):
-    correct_user = config.get("USERS", "root_user", fallback=None)
-    correct_pass = config.get("USERS", "root_pass", fallback=None)
+    user_data = config.get("USERS", "root", fallback=None)
     
+    if user_data:
+        try:
+            user_dict = ast.literal_eval(user_data)  # Safely parse the string as a dictionary
+            correct_user = user_dict.get('user')
+            correct_pass = user_dict.get('password')
+            salt = user_dict.get('salt')
+
+            password = utils.encode(password,salt)
+        except (SyntaxError, ValueError):
+            return False  # Return False if parsing fails
+    print("correct:",correct_user,correct_pass)
+    print("input:",username,password)
     if correct_user == username and correct_pass == password:
         return True
     return False
@@ -48,10 +59,6 @@ def logg():
     data = request.form
     userID = data['userID']
     password = data['password']
-    m = hashlib.sha256()
-    m.update(password.encode())
-    password = m.hexdigest()
-    print(password)
     if login_input_check(userID,password):
         resp = redirect("/admin")
         resp.set_cookie('user',userID)

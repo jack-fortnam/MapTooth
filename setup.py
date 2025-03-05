@@ -1,4 +1,4 @@
-import hashlib,socket
+import hashlib,socket,random,utils
 from configparser import ConfigParser
 ip = socket.gethostbyname(socket.gethostname())
 port = 6785
@@ -50,14 +50,13 @@ while True:
 
 root_user = input("What is the root username?\n>>> ")
 root_pass = input("What is the root password?\n>>> ")
+salt = str(random.randint(10000,999999))
 
-m = hashlib.sha256()
-m.update(root_pass.encode())  # Fix: Correctly encode the password
-root_pass = m.hexdigest()
+root_pass = utils.encode(root_pass,salt)
 
 with open('config.cfg','w') as f:
     config['CORE'] = {'server_ip':ip,'port':port}
-    config['USERS'] = {"root":{"user":root_user,"password":root_pass}}
+    config['USERS'] = {"root":{"user":root_user,"password":root_pass,"salt":salt}}
     print("Writing to file")
     config.write(f)
         
