@@ -2,6 +2,8 @@ from flask import Flask, request, jsonify, render_template,redirect,make_respons
 import pickle,requests,json,hashlib
 from configparser import ConfigParser
 import pickle,socket,ast,utils
+import jwt  # JSON Web Token
+import datetime
 
 # Flask setup
 app = Flask(__name__)
@@ -10,6 +12,7 @@ app = Flask(__name__)
 api_key = "VPB535HB"
 locations = {}
 nodes = {}
+SECRET_KEY ="298d0ec5b846817251cc27ca7f4018fa833ca86e2065091d11663284285dfd82ba0835aab7b3ad163378f85f2f827c3063f15cc171a9f4a96b7f65c81c951fb0e97de8d96cb4b420f80b18f97460110739851058dbb1da1d71e667fe2dcf537f70ef9e5cc6fc4a8589532e5e7c35fbae57847ecbad345347e895f909acfec60902f15cd4539b9f66b576b8e43656ab845f96c212b1141f76be3b4044a1d5c1dd03d0f2455bd76d9d98a93732388a70000719b6ff897d4304b8241de12b5a194e504d932bafc56df154161ad943539d51a927772d46dcb36a963a136db827966902fa44f94e45b9e255cf8c9a3e544b9033bbfd653326a237a817ee6b4aea9ce1"
 IP = socket.gethostbyname(socket.gethostname())
 config = ConfigParser()
 config.read("config.cfg")
@@ -40,6 +43,24 @@ def login_input_check(username, password):
         return True
     return False
 
+def create_jwt_token(username):
+    """Generates a JWT token valid for 7 days."""
+    expiration = datetime.datetime.utcnow() + datetime.timedelta(days=7)
+    payload = {"user": username, "exp": expiration}
+    return jwt.encode(payload, SECRET_KEY, algorithm="HS256")
+
+def check_token():
+    token = request.cookies.get("auth_token")
+    if not token:
+        return None
+
+    try:
+        decoded = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
+        return decoded["user"]
+    except jwt.ExpiredSignatureError:
+        return None  # Token expired
+    except jwt.InvalidTokenError:
+        return None  # Invalid token
 
 # Routes for HTML templates
 @app.route('/', methods=['GET'])
@@ -56,13 +77,15 @@ def admin():
 
 @app.route('/logg' , methods=['POST'])
 def logg():
+    
+
     data = request.form
     userID = data['userID']
     password = data['password']
     if login_input_check(userID,password):
-        resp = redirect("/admin")
-        resp.set_cookie('user',userID)
-        resp.set_cookie('pass',password)
+        token = create_jwt_token(userID)
+        resp = make_response(redirect("/admin"))
+        resp.set_cookie("auth_token", token, httponly=True, secure=True, max_age=7*24*60*60)
         return resp
     return "Invalid credentials", 401
 
