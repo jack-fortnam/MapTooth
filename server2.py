@@ -7,7 +7,7 @@ import datetime
 
 # Flask setup
 app = Flask(__name__)
-
+app.url_map.strict_slashes = False
 # Constants and storage
 api_key = "VPB535HB"
 locations = {}
@@ -34,7 +34,7 @@ def login_input_check(username, password):
             correct_pass = user_dict.get('password')
             salt = user_dict.get('salt')
 
-            password = utils.encode(password,salt)
+            password = utils.encrypt(password,salt)
         except (SyntaxError, ValueError):
             return False  # Return False if parsing fails
     print("correct:",correct_user,correct_pass)
@@ -44,16 +44,14 @@ def login_input_check(username, password):
     return False
 
 def create_jwt_token(username):
-    """Generates a JWT token valid for 7 days."""
-    expiration = datetime.datetime.utcnow() + datetime.timedelta(days=7)
+    expiration = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(days=7)
     payload = {"user": username, "exp": expiration}
     return jwt.encode(payload, SECRET_KEY, algorithm="HS256")
 
-def check_token():
+def get_logged_in_user():
     token = request.cookies.get("auth_token")
     if not token:
         return None
-
     try:
         decoded = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
         return decoded["user"]
@@ -61,6 +59,13 @@ def check_token():
         return None  # Token expired
     except jwt.InvalidTokenError:
         return None  # Invalid token
+
+def secure(target_page):
+    user = get_logged_in_user()
+    if not user:
+        return redirect("/login")  # Redirect if not logged in
+
+    return render_template(target_page)
 
 # Routes for HTML templates
 @app.route('/', methods=['GET'])
@@ -73,12 +78,10 @@ def login():
 
 @app.route('/admin')
 def admin():
-    return "Admin"
+    return secure('admin.html')
 
 @app.route('/logg' , methods=['POST'])
 def logg():
-    
-
     data = request.form
     userID = data['userID']
     password = data['password']

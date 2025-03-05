@@ -52,7 +52,7 @@ root_user = input("What is the root username?\n>>> ")
 root_pass = input("What is the root password?\n>>> ")
 salt = str(random.randint(10000,999999))
 
-root_pass = utils.encode(root_pass,salt)
+root_pass = utils.encrypt(root_pass,salt)
 
 with open('config.cfg','w') as f:
     config['CORE'] = {'server_ip':ip,'port':port}
