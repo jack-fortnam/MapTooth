@@ -2,7 +2,8 @@ from flask import Flask, request, jsonify, render_template,redirect,make_respons
 import pickle,requests,json,hashlib
 from configparser import ConfigParser
 import pickle,socket,ast,utils
-import jwt  # JSON Web Token
+import jwt
+import what3words as w3w
 import datetime
 
 # Flask setup
@@ -67,10 +68,38 @@ def secure(target_page):
 
     return render_template(target_page)
 
-# Routes for HTML templates
+def convert_w3w_to_coordinates(w3w_address):
+    url = f"https://nominatim.openstreetmap.org/search?q={w3w_address.replace('.', '+')}&format=json"
+    response = requests.get(url).json()
+
+    if response:
+        return {"coordinates": {"lat": float(response[0]["lat"]), "lng": float(response[0]["lon"])}}
+    return None
+
 @app.route('/', methods=['GET'])
 def index():
-    return render_template('index.html')
+    try:
+        with open("nodes.json", "r") as file:
+            nodes = json.load(file)  # Load JSON data properly
+    except json.JSONDecodeError:
+        nodes = {}  # Handle empty or invalid JSON file
+
+    print("Loaded nodes:", nodes)  # Debugging
+
+    markers = []
+    # Convert What3Words addresses to coordinates
+    for location_id, (place_name, w3w_address) in nodes.items():
+        response = convert_w3w_to_coordinates(w3w_address)
+    
+    if response and "coordinates" in response:
+        lat = response["coordinates"]["lat"]
+        lng = response["coordinates"]["lng"]
+        markers.append((lat, lng, place_name))
+
+
+    print("Final markers:", markers)  # Debugging
+    return render_template("index.html", markers=markers)
+
 
 @app.route('/login')
 def login():
