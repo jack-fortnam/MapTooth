@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MapToothp</title>
+    <title>MapTooth</title>
 
     <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -36,7 +36,7 @@
 
     <script>
         // Initialize the map centered at a default location
-        var map = L.map('map').setView([40.748817, -73.985428], 3); // Default: New York
+        var map = L.map('map').setView([51.899386, -2.078253], 10); // Default: New York
 
         // Add OpenStreetMap tile layer
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -50,7 +50,7 @@
         markers.forEach(function(marker) {
             L.marker([marker[0], marker[1]])
                 .addTo(map)
-                .bindPopup(marker[2]); // Show location name when clicked
+                .bindPopup(marker[2]) // Show location name when clicked
         });
     </script>
 
