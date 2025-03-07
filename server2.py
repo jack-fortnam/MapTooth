@@ -68,14 +68,6 @@ def secure(target_page):
 
     return render_template(target_page)
 
-def convert_w3w_to_coordinates(w3w_address):
-    url = f"https://nominatim.openstreetmap.org/search?q={w3w_address.replace('.', '+')}&format=json"
-    response = requests.get(url).json()
-
-    if response:
-        return {"coordinates": {"lat": float(response[0]["lat"]), "lng": float(response[0]["lon"])}}
-    return None
-
 @app.route('/', methods=['GET'])
 def index():
     try:
@@ -88,16 +80,12 @@ def index():
 
     markers = []
     # Convert What3Words addresses to coordinates
-    for location_id, (place_name, w3w_address) in nodes.items():
-        response = convert_w3w_to_coordinates(w3w_address)
-    
-    if response and "coordinates" in response:
-        lat = response["coordinates"]["lat"]
-        lng = response["coordinates"]["lng"]
+    for location_id, (place_name, coords) in nodes.items():
+        coords = coords.split(',')
+        lat,lng = coords[0],coords[1]
         markers.append((lat, lng, place_name))
 
-
-    print("Final markers:", markers)  # Debugging
+    print("Final markers:", markers)
     return render_template("index.html", markers=markers)
 
 
@@ -131,11 +119,11 @@ def submitted():
     data = request.form
     nodeId = data['nodeID']
     nodeName = data['nodeName']
-    what3 = data['w3w']
-    nodes[nodeId] = [nodeName,what3]
+    coord = data['coord']
+    nodes[nodeId] = [nodeName,coord]
     with open('nodes.json', 'w') as nodeo:
         json.dump(nodes,nodeo)
-    return render_template('node.html', submitted=f"Node Submitted :D {nodeId} {nodeName} {what3}")
+    return render_template('node.html', submitted=f"Node Submitted :D {nodeId} {nodeName} {coord}")
 
 @app.route('/get-locations', methods=['GET'])
 def get_locations():
@@ -144,6 +132,14 @@ def get_locations():
         return jsonify(locations[id])
     except:
         return jsonify(locations)
+    
+@app.route('/get-node', methods=['GET'])
+def get_node():
+        id = str(request.args.get('id'))
+        print(id)
+        print(nodes[id])
+        return jsonify(nodes[id])
+        return jsonify(nodes)
 
 @app.route('/report_in', methods=['POST'])
 def report_in():
