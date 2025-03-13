@@ -18,7 +18,7 @@ async def scan_bluetooth():
 
 async def report_out():
     report = {
-        "device_id": uuid.getnode(),
+        "device_id": 4567,
         "nearby_devices": await scan_bluetooth()
     }
     data = json.dumps(report).encode("utf-8")
