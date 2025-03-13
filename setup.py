@@ -30,6 +30,7 @@ while True:
     elif ip_choice == 2:
         ip = input("Enter custom IP:\n>>> ")
         print(f"{bcolours.OKGREEN}Setting server IP to {ip}{bcolours.ENDC}")
+        break
     else:
         print(f"{bcolours.FAIL}Invalid choice! Please choose again{bcolours.ENDC}")
 
