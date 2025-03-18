@@ -80,7 +80,8 @@ def index():
         coords = coords.strip().split(',')
         lat,lng = coords[0],coords[1]
         print(locations)
-        markers.append((lat, lng, place_name))
+        devices = request.get_json(f"http://127.0.0.1:6785/get-locations?id={location_id}")
+        markers.append((lat, lng, place_name,location_id,devices))
 
     print("Final markers:", markers)
     return render_template("map.html", markers=markers)
@@ -99,12 +100,10 @@ def logg():
     data = request.form
     userID = data['userID']
     password = data['password']
-    remember = data['remember']
     if login_input_check(userID,password):
         token = create_jwt_token(userID)
         resp = make_response(redirect("/admin"))
-        if remember:
-            resp.set_cookie("auth_token", token, httponly=True, secure=True, max_age=7*24*60*60)
+        resp.set_cookie("auth_token", token, httponly=True, secure=True, max_age=7*24*60*60)
         return resp
     return "Invalid credentials", 401
 

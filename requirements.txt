@@ -3,3 +3,4 @@ bleak
 uuid
 asyncio
 requests
+pyjwt
