@@ -3,7 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="refresh" content="30">
     <title>MapTooth</title>
 
     <!-- Leaflet CSS -->
@@ -51,7 +50,7 @@
         markers.forEach(function(marker) {
             L.marker([marker[0], marker[1]])
                 .addTo(map)
-                .bindPopup(marker[2]+' ('+marker[3]+')<br>'+marker[4]) // Show location name when clicked
+                .bindPopup(marker[2]+' ('+marker[3]+')<br>') // Show location name when clicked
         });
     </script>
 
