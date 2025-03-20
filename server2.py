@@ -80,7 +80,7 @@ def index():
         coords = coords.strip().split(',')
         lat,lng = coords[0],coords[1]
         print(locations)
-        devices = request.get_json(f"http://127.0.0.1:6785/get-locations?id={location_id}")
+        devices = locations.get(location_id)
         markers.append((lat, lng, place_name,location_id,devices))
 
     print("Final markers:", markers)

@@ -13,6 +13,14 @@ class bcolours:
     BOLD = '\033[1m'
     UNDERLINE = '\033[4m'
     
+def out(message,state):
+    if state == "ok":
+        return f"{bcolours.OKGREEN}{message}{bcolours.ENDC}"
+    elif state == "warn":
+        return f"{bcolours.WARNING}{message}{bcolours.ENDC}"
+    else:
+        return f"{bcolours.FAIL}{message}{bcolours.ENDC}"
+    
 config = ConfigParser()
 print("""
 ███╗   ███╗ █████╗ ██████╗ ████████╗ ██████╗  ██████╗ ████████╗██╗  ██╗
@@ -25,32 +33,45 @@ print(f"{bcolours.BOLD}Welcome to MapTooth!")
 while True:
     ip_choice = int(input("IP address\n[1] DHCP\n[2] Manual\n>>> "))
     if ip_choice == 1:
-        print(f"{bcolours.OKGREEN}Setting server IP to {ip}{bcolours.ENDC}")
+        print(out(f"Setting server IP to {ip}","ok"))
         break
     elif ip_choice == 2:
         ip = input("Enter custom IP:\n>>> ")
-        print(f"{bcolours.OKGREEN}Setting server IP to {ip}{bcolours.ENDC}")
-        break
+        if len(ip.split('.')) == 4:
+            c = 0
+            for x in ip.split('.'):
+                if 0 <= int(x) <= 255:
+                    c+= 1
+            if c ==4:
+                print(out(f"Setting server IP to {ip}","ok"))
+                break
+        print(out("Invalid choice! Please choose again","fail"))
     else:
-        print(f"{bcolours.FAIL}Invalid choice! Please choose again{bcolours.ENDC}")
+        print(out("Invalid choice! Please choose again","fail"))
 
 while True:
     port_choice = int(input("PORT\n[1] Default (6785)\n[2] Manual\n>>> "))
     if port_choice == 1:
-        print(f"{bcolours.OKGREEN}Setting PORT to 6785{bcolours.ENDC}")
+        print(out("Setting PORT to 6785","ok"))
         break
     elif port_choice == 2:
         port = int(input("Enter custom PORT:\n>>> "))
         if port <= 1000 or port >= 65535:
-            print(f"{bcolours.FAIL}PORT out of range{bcolours.ENDC}")
+            print(out("PORT out of range","fail"))
             continue
-        print(f"{bcolours.OKGREEN}Setting PORT to {port}{bcolours.ENDC}")
+        print(out(f"Setting PORT to {port}","ok"))
         break
     else:
-        print(f"{bcolours.FAIL}Invalid choice! Please choose again{bcolours.ENDC}")
+        print(out("Invalid choice! Please choose again","fail"))
 
 root_user = input("What is the root username?\n>>> ")
-root_pass = input("What is the root password?\n>>> ")
+while True:
+    root_pass = input("What is the root password?\n>>> ")
+    if len(root_pass) >= 8:
+        print(out("Setting password","ok"))
+        break
+    else:
+        print(out("password too short","fail"))
 salt = str(random.randint(10000,999999))
 
 root_pass = utils.encrypt(root_pass,salt)
