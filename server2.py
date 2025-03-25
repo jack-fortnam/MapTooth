@@ -11,11 +11,11 @@ app.url_map.strict_slashes = False
 # Constants and storage
 locations = {}
 nodes = {}
-SECRET_KEY ="298d0ec5b846817251cc27ca7f4018fa833ca86e2065091d11663284285dfd82ba0835aab7b3ad163378f85f2f827c3063f15cc171a9f4a96b7f65c81c951fb0e97de8d96cb4b420f80b18f97460110739851058dbb1da1d71e667fe2dcf537f70ef9e5cc6fc4a8589532e5e7c35fbae57847ecbad345347e895f909acfec60902f15cd4539b9f66b576b8e43656ab845f96c212b1141f76be3b4044a1d5c1dd03d0f2455bd76d9d98a93732388a70000719b6ff897d4304b8241de12b5a194e504d932bafc56df154161ad943539d51a927772d46dcb36a963a136db827966902fa44f94e45b9e255cf8c9a3e544b9033bbfd653326a237a817ee6b4aea9ce1"
 config = ConfigParser()
 config.read("config.cfg")
 ip = config['CORE']['server_ip']
 port = config['CORE']['port']
+SECRET_KEY = config['CORE']['secret']
 
 try:
     with open('nodes.json','r') as nodeo:
@@ -54,9 +54,9 @@ def get_logged_in_user():
         decoded = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
         return decoded["user"]
     except jwt.ExpiredSignatureError:
-        return None  # Token expired
+        return None
     except jwt.InvalidTokenError:
-        return None  # Invalid token
+        return None
 
 def secure(target_page):
     user = get_logged_in_user()
@@ -73,7 +73,7 @@ def index():
     except json.JSONDecodeError:
         nodes = {}  # Handle empty or invalid JSON file
 
-    print("Loaded nodes:", nodes)  # Debugging
+    print("Loaded nodes:", nodes)
 
     markers = []
     for location_id, (place_name, coords) in nodes.items():
@@ -120,7 +120,7 @@ def submitted():
     nodes[nodeId] = [nodeName,coord]
     with open('nodes.json', 'w') as nodeo:
         json.dump(nodes,nodeo)
-    return render_template('node.html', submitted=f"Node Submitted :D {nodeId} {nodeName} {coord}")
+    return render_template('node.html', submitted=f"Node Submitted!<br> {nodeId}<br> {nodeName}<br> {coord}")
 
 @app.route('/get-locations', methods=['GET'])
 def get_locations():
@@ -132,10 +132,13 @@ def get_locations():
     
 @app.route('/get-node', methods=['GET'])
 def get_node():
+    try:
         id = str(request.args.get('id'))
         print(id)
         print(nodes[id])
         return jsonify(nodes[id])
+    except:
+        return jsonify(nodes)
 
 @app.route('/report_in', methods=['POST'])
 def report_in():

@@ -1,16 +1,28 @@
 import asyncio
+from configparser import ConfigParser
 import json
 import uuid
 import time
 import requests
 from bleak import BleakScanner
 
-server_ip = "127.0.0.1"
-uri = f"http://{server_ip}:5000/report_in"
+try:
+    config = ConfigParser()
+    config.read("config.cfg")
+    port = config['CORE']['port']
+    server_ip = config['CORE']['server_ip']
+    uri = f"http://{server_ip}:{port}/report_in"
+except:
+    print("No config generated. use setup.py to configure")
+    exit()
 print(f"{uuid.getnode()} is connecting to the server at {uri}")
 
 async def scan_bluetooth():
-    devices = await BleakScanner.discover()
+    try:
+        devices = await BleakScanner.discover()
+    except:
+        print("Bluetooth is not on")
+        exit()
     device_list = []
     for device in devices:
         device_list.append({"address": device.address, "name": device.name or "Unknown"})
@@ -18,7 +30,7 @@ async def scan_bluetooth():
 
 async def report_out():
     report = {
-        "device_id": 4567,
+        "device_id": uuid.getnode(),
         "nearby_devices": await scan_bluetooth()
     }
     data = json.dumps(report).encode("utf-8")

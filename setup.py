@@ -1,4 +1,4 @@
-import hashlib,socket,random,utils
+import hashlib,socket,random,utils,secrets
 from configparser import ConfigParser
 ip = socket.gethostbyname(socket.gethostname())
 port = 6785
@@ -76,9 +76,11 @@ salt = str(random.randint(10000,999999))
 
 root_pass = utils.encrypt(root_pass,salt)
 
+secret_key = secrets.token_hex(128)
+
 with open('config.cfg','w') as f:
-    config['CORE'] = {'server_ip':ip,'port':port}
+    config['CORE'] = {'server_ip':ip,'port':port,'secret':secret_key}
     config['USERS'] = {"root":{"user":root_user,"password":root_pass,"salt":salt}}
-    print("Writing to file")
+    print("Writing to file\n Any changes wont be made until the server is restarted!")
     config.write(f)
         
