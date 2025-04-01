@@ -1,7 +1,13 @@
-import hashlib,socket,random,utils,secrets
+import hashlib,socket,random,secrets
 from configparser import ConfigParser
 ip = socket.gethostbyname(socket.gethostname())
 port = 6785
+import hashlib
+def encrypt(password,salt):
+    m = hashlib.sha256()
+    m.update((password+salt).encode())
+    password = m.hexdigest()
+    return password
 class bcolours:
     HEADER = '\033[95m'
     OKBLUE = '\033[94m'
@@ -74,7 +80,7 @@ while True:
         print(out("password too short","fail"))
 salt = str(random.randint(10000,999999))
 
-root_pass = utils.encrypt(root_pass,salt)
+root_pass = encrypt(root_pass,salt)
 
 secret_key = secrets.token_hex(128)
 
