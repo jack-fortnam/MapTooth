@@ -21,8 +21,7 @@ try:
     with open('nodes.json','r') as nodeo:
         nodes = json.load(nodeo)
 except:
-    with open('nodes.json','w') as nodeo:
-        pass
+    nodes = []
 
 def login_input_check(username, password):
     user_data = config.get("USERS", "root", fallback=None)
