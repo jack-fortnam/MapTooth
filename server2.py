@@ -1,10 +1,15 @@
 from flask import Flask, request, jsonify, render_template,redirect,make_response
 import json
 from configparser import ConfigParser
-import ast,utils
+import ast
 import jwt
 import datetime
-
+import hashlib
+def encrypt(password,salt):
+    m = hashlib.sha256()
+    m.update((password+salt).encode())
+    password = m.hexdigest()
+    return password
 # Flask setup
 app = Flask(__name__)
 app.url_map.strict_slashes = False
@@ -33,7 +38,7 @@ def login_input_check(username, password):
             correct_pass = user_dict.get('password')
             salt = user_dict.get('salt')
 
-            password = utils.encrypt(password,salt)
+            password = encrypt(password,salt)
         except (SyntaxError, ValueError):
             return False  # Return False if parsing fails
     if correct_user == username and correct_pass == password:
